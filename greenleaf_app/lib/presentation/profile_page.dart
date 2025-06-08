@@ -16,8 +16,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   late TextEditingController firstNameController;
   late TextEditingController lastNameController;
   late TextEditingController birthdateController;
-  late TextEditingController genderController;
   late TextEditingController phoneController;
+
+  String? _selectedGender;
 
   bool isEditing = false;
   bool showDeleteDialog = false;
@@ -30,7 +31,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     firstNameController = TextEditingController(text: user?.firstName ?? '');
     lastNameController = TextEditingController(text: user?.lastName ?? '');
     birthdateController = TextEditingController(text: user?.birthdate?.toIso8601String().split('T').first ?? '');
-    genderController = TextEditingController(text: user?.gender ?? '');
+    _selectedGender = user?.gender;
     phoneController = TextEditingController(text: user?.phoneNumber ?? '');
   }
 
@@ -39,7 +40,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     firstNameController.dispose();
     lastNameController.dispose();
     birthdateController.dispose();
-    genderController.dispose();
     phoneController.dispose();
     super.dispose();
   }
@@ -60,7 +60,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         'first_name': firstNameController.text,
         'last_name': lastNameController.text,
         'birthdate': birthdateController.text.isNotEmpty ? birthdateController.text : null,
-        'gender': genderController.text,
+        'gender': _selectedGender,
         'phone_number': phoneController.text,
       }, _selectedImage?.path);
       setState(() => isEditing = false);
@@ -167,10 +167,28 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       decoration: const InputDecoration(labelText: 'Birth Date (YYYY-MM-DD)'),
                     ),
                     const SizedBox(height: 12),
-                    TextFormField(
-                      controller: genderController,
-                      enabled: isEditing,
-                      decoration: const InputDecoration(labelText: 'Gender'),
+                    // Dropdown for Gender
+                    IgnorePointer(
+                      ignoring: !isEditing,
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedGender,
+                        decoration: const InputDecoration(labelText: 'Gender'),
+                        items: const [
+                          DropdownMenuItem(value: 'Male', child: Text('Male')),
+                          DropdownMenuItem(value: 'Female', child: Text('Female')),
+                        ],
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedGender = newValue;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please select your gender';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -185,17 +203,20 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       decoration: const InputDecoration(labelText: 'Email'),
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _onLogout,
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                      child: const Text('Log Out'),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => setState(() => showDeleteDialog = true),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      child: const Text('Delete Account'),
-                    ),
+                    if (!isEditing)
+                      ElevatedButton(
+                        onPressed: _onLogout,
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        child: const Text('Log Out'),
+                      ),
+                    if (!isEditing)
+                      const SizedBox(height: 12),
+                    if (!isEditing)
+                      ElevatedButton(
+                        onPressed: () => setState(() => showDeleteDialog = true),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: const Text('Delete Account'),
+                      ),
                     if (authState.failure != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 12.0),
