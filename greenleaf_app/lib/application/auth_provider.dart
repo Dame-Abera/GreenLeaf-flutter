@@ -3,6 +3,7 @@ import '../domain/user.dart';
 import '../domain/auth_failure.dart';
 import '../infrastructure/auth_repository.dart';
 import 'package:dio/dio.dart';
+import 'providers/sync_provider.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return RemoteAuthRepository(
@@ -29,15 +30,28 @@ class AuthState {
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository repository;
-  AuthNotifier(this.repository) : super(AuthState());
+  final Ref ref;
+
+  AuthNotifier(this.repository, this.ref) : super(AuthState());
 
   Future<void> login(String email, String password) async {
     state = state.copyWith(isLoading: true, failure: null);
+    
     try {
+      await Future.delayed(const Duration(milliseconds: 100));
       final user = await repository.login(email, password);
-      state = state.copyWith(user: user, isLoading: false);
+      await Future.delayed(const Duration(milliseconds: 100));
+      state = state.copyWith(
+        user: user,
+        isLoading: false,
+        failure: null,
+      );
     } catch (e) {
-      state = state.copyWith(isLoading: false, failure: AuthFailure(e.toString()));
+      await Future.delayed(const Duration(milliseconds: 100));
+      state = state.copyWith(
+        isLoading: false,
+        failure: AuthFailure(e.toString()),
+      );
     }
   }
 
@@ -62,6 +76,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
+    // Try to sync any pending changes before logout
+    try {
+      await ref.read(syncProvider.notifier).sync();
+    } catch (e) {
+      print('Failed to sync before logout: $e');
+    }
     await repository.logout();
     state = AuthState();
   }
@@ -99,5 +119,5 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final repo = ref.watch(authRepositoryProvider);
-  return AuthNotifier(repo);
+  return AuthNotifier(repo, ref);
 }); 

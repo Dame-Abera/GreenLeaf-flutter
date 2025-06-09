@@ -189,7 +189,7 @@ class RemoteObservationRepository implements ObservationRepository {
       final existingObservation = localDataSource.getCachedObservations().firstWhere((o) => o.id == id);
       await localDataSource.updateObservation(existingObservation.copyWith(syncStatus: SyncStatus.pending_delete));
       print('Observation marked for deletion in local cache (offline).');
-      // No exception here, complete the future successfully for local delete
+      return Future.value(); // Explicitly complete the future successfully
     } catch (e) {
       print('Unknown error deleting observation: $e');
       rethrow;

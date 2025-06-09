@@ -54,7 +54,10 @@ class PlantNotifier extends StateNotifier<PlantState> {
       }
       await Future.microtask(() => state = state.copyWith(plants: plants, isLoading: false));
     } catch (e) {
-      await Future.microtask(() => state = state.copyWith(isLoading: false, error: e.toString()));
+      print('Error fetching plants in PlantNotifier: $e');
+      // If there's an error (e.g., no network and no cached plants),
+      // we still want to set isLoading to false and keep plants as empty, not rethrow.
+      await Future.microtask(() => state = state.copyWith(isLoading: false, plants: [], error: e.toString()));
     }
   }
 

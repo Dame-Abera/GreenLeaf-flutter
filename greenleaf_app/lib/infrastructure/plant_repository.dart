@@ -184,7 +184,7 @@ class RemotePlantRepository implements PlantRepository {
       final existingPlant = localDataSource.getCachedPlants().firstWhere((p) => p.id == id);
       await localDataSource.updatePlant(existingPlant.copyWith(syncStatus: SyncStatus.pending_delete));
       print('Plant marked for deletion in local cache (offline).');
-      // No exception here, complete the future successfully for local delete
+      return Future.value(); // Explicitly complete the future successfully
     } catch (e) {
       print('Unknown error deleting plant: $e');
       rethrow;

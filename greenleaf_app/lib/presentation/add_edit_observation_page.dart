@@ -174,7 +174,11 @@ class _AddEditObservationPageState extends ConsumerState<AddEditObservationPage>
                         image: _selectedImage != null
                             ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
                             : (widget.observation?.observationImage != null && widget.observation!.observationImage!.isNotEmpty
-                                ? DecorationImage(image: NetworkImage(widget.observation!.observationImage!), fit: BoxFit.cover)
+                                ? (widget.observation!.observationImage!.startsWith('http')
+                                    ? DecorationImage(image: NetworkImage(widget.observation!.observationImage!),
+                                        fit: BoxFit.cover)
+                                    : DecorationImage(image: FileImage(File(widget.observation!.observationImage!)),
+                                        fit: BoxFit.cover))
                                 : null),
                       ),
                       child: _selectedImage == null && (widget.observation?.observationImage == null || widget.observation!.observationImage!.isEmpty)

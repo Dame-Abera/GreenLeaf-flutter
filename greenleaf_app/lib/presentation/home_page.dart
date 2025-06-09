@@ -33,8 +33,6 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (!ref.read(observationProvider).isLoading) {
         ref.read(observationProvider.notifier).fetchObservations();
       }
-      // Also ensure user profile is fetched to check admin status
-      ref.read(authProvider.notifier).fetchProfile(null as String?);
     });
   }
 
@@ -57,10 +55,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('GreenLeaf'),
-        backgroundColor: Colors.green,
-      ),
       body: Column(
         children: [
           Padding(
