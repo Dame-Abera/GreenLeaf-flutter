@@ -150,7 +150,7 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
                 children: [
                   Text(
                     '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim().isEmpty
-                        ? '${user.email}'
+                        ? user.email
                         : '${user.firstName ?? ''} ${user.lastName ?? ''}',
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold), // Slightly smaller font
                   ),

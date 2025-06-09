@@ -109,116 +109,125 @@ class _AddEditPlantPageState extends ConsumerState<AddEditPlantPage> {
         title: Text(widget.plant == null ? 'Add Plant' : 'Edit Plant'),
         backgroundColor: Colors.green,
       ),
-      body: plantState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 150,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(16),
-                          image: _selectedImage != null
-                              ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
-                              : (widget.plant?.plantImage != null && widget.plant!.plantImage!.isNotEmpty
-                                  ? DecorationImage(image: NetworkImage(widget.plant!.plantImage!), fit: BoxFit.cover)
-                                  : null),
-                        ),
-                        child: _selectedImage == null && (widget.plant?.plantImage == null || widget.plant!.plantImage!.isEmpty)
-                            ? const Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
-                            : null,
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      height: 150,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(16),
+                        image: _selectedImage != null
+                            ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
+                            : (widget.plant?.plantImage != null && widget.plant!.plantImage!.isNotEmpty
+                                ? DecorationImage(image: NetworkImage(widget.plant!.plantImage!), fit: BoxFit.cover)
+                                : null),
+                      ),
+                      child: _selectedImage == null && (widget.plant?.plantImage == null || widget.plant!.plantImage!.isEmpty)
+                          ? const Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
+                          : null,
+                    ),
+                  ),
+                  if (plantState.error != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: Text(
+                        'Error: ${plantState.error}',
+                        style: const TextStyle(color: Colors.red),
                       ),
                     ),
-                    if (plantState.error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12.0),
-                        child: Text(
-                          'Error: ${plantState.error}',
-                          style: const TextStyle(color: Colors.red),
-                        ),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: commonNameController,
+                    decoration: const InputDecoration(labelText: 'Common Name'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter common name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: scientificNameController,
+                    decoration: const InputDecoration(labelText: 'Scientific Name'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter scientific name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: habitatController,
+                    decoration: const InputDecoration(labelText: 'Habitat'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter habitat';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: originController,
+                    decoration: const InputDecoration(labelText: 'Origin'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter origin';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(labelText: 'Description'),
+                    maxLines: 3,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter description';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: plantState.isLoading ? null : () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                        child: const Text('Cancel'),
                       ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: commonNameController,
-                      decoration: const InputDecoration(labelText: 'Common Name'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter common name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: scientificNameController,
-                      decoration: const InputDecoration(labelText: 'Scientific Name'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter scientific name';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: habitatController,
-                      decoration: const InputDecoration(labelText: 'Habitat'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter habitat';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: originController,
-                      decoration: const InputDecoration(labelText: 'Origin'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter origin';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: descriptionController,
-                      decoration: const InputDecoration(labelText: 'Description'),
-                      maxLines: 3,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter description';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          onPressed: _onSave,
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                          child: const Text('Save'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ElevatedButton(
+                        onPressed: plantState.isLoading ? null : _onSave,
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        child: const Text('Save'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
+          ),
+          if (plantState.isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
+      ),
     );
   }
 } 

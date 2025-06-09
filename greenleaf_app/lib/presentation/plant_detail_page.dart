@@ -14,7 +14,7 @@ class PlantDetailPage extends ConsumerWidget {
     final plantNotifier = ref.read(plantProvider.notifier);
     final plantState = ref.watch(plantProvider);
 
-    void _deletePlant() async {
+    void deletePlant() async {
       await plantNotifier.deletePlant(plant.id);
       Navigator.pop(context); // Go back to the plant list after deletion
     }
@@ -98,7 +98,7 @@ class PlantDetailPage extends ConsumerWidget {
                                       child: const Text('Cancel'),
                                     ),
                                     TextButton(
-                                      onPressed: _deletePlant,
+                                      onPressed: deletePlant,
                                       child: const Text('Delete', style: TextStyle(color: Colors.red)),
                                     ),
                                   ],

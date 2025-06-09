@@ -27,8 +27,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.initState();
     // Fetch plants and observations when the Home Page initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(plantProvider.notifier).fetchPlants();
-      ref.read(observationProvider.notifier).fetchObservations();
+      if (!ref.read(plantProvider).isLoading) {
+        ref.read(plantProvider.notifier).fetchPlants();
+      }
+      if (!ref.read(observationProvider).isLoading) {
+        ref.read(observationProvider.notifier).fetchObservations();
+      }
       // Also ensure user profile is fetched to check admin status
       ref.read(authProvider.notifier).fetchProfile(null as String?);
     });
@@ -141,42 +145,44 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildPlantsTab(PlantState plantState) {
-    if (plantState.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (plantState.error != null) {
-      return Center(child: Text('Error: ${plantState.error}', style: TextStyle(color: Colors.red)));
-    }
-    if (plantState.plants.isEmpty) {
+    if (plantState.plants.isEmpty && !plantState.isLoading) {
       return const Center(child: Text('No plants found.'));
     }
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: plantState.plants.length,
-      itemBuilder: (context, index) {
-        final plant = plantState.plants[index];
-        return _plantCard(plant);
-      },
+    
+    return Stack(
+      children: [
+        ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: plantState.plants.length,
+          itemBuilder: (context, index) {
+            final plant = plantState.plants[index];
+            return _plantCard(plant);
+          },
+        ),
+        if (plantState.isLoading)
+          const Center(child: CircularProgressIndicator()),
+      ],
     );
   }
 
   Widget _buildObservationsTab(ObservationState observationState) {
-    if (observationState.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (observationState.error != null) {
-      return Center(child: Text('Error: ${observationState.error}', style: TextStyle(color: Colors.red)));
-    }
-    if (observationState.observations.isEmpty) {
+    if (observationState.observations.isEmpty && !observationState.isLoading) {
       return const Center(child: Text('No observations found.'));
     }
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: observationState.observations.length,
-      itemBuilder: (context, index) {
-        final observation = observationState.observations[index];
-        return _observationCard(observation);
-      },
+    
+    return Stack(
+      children: [
+        ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: observationState.observations.length,
+          itemBuilder: (context, index) {
+            final observation = observationState.observations[index];
+            return _observationCard(observation);
+          },
+        ),
+        if (observationState.isLoading)
+          const Center(child: CircularProgressIndicator()),
+      ],
     );
   }
 

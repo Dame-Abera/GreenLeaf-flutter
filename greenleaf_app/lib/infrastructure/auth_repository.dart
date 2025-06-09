@@ -31,7 +31,7 @@ class RemoteAuthRepository implements AuthRepository {
       return fetchProfile(access);
     } catch (e) {
       print('Login error: $e');
-      if (e is DioError) {
+      if (e is DioException) {
         print('DioError response: \\${e.response}');
         final errorMsg = e.response?.data['detail']?.toString() ??
             e.response?.data['error']?.toString() ??
@@ -60,7 +60,7 @@ class RemoteAuthRepository implements AuthRepository {
       return fetchProfile(access);
     } catch (e) {
       print('Signup error: $e');
-      if (e is DioError) {
+      if (e is DioException) {
         print('DioError response: \\${e.response}');
         final errorMsg = e.response?.data['detail']?.toString() ??
             e.response?.data['error']?.toString() ??
@@ -97,7 +97,7 @@ class RemoteAuthRepository implements AuthRepository {
       );
     } catch (e) {
       print('Fetch profile error: $e');
-      if (e is DioError) {
+      if (e is DioException) {
         print('DioError response: \\${e.response}');
         final errorMsg = e.response?.data['detail']?.toString() ??
             e.response?.data['error']?.toString() ??
@@ -163,7 +163,7 @@ class RemoteAuthRepository implements AuthRepository {
       );
     } catch (e) {
       print('Update profile error: $e');
-      if (e is DioError) {
+      if (e is DioException) {
         final errorMsg = e.response?.data['detail']?.toString() ??
             e.response?.data['error']?.toString() ??
             e.response?.data.toString() ??
@@ -186,7 +186,7 @@ class RemoteAuthRepository implements AuthRepository {
       await TokenStorage.clearTokens();
     } catch (e) {
       print('Delete account error: $e');
-      if (e is DioError) {
+      if (e is DioException) {
         final errorMsg = e.response?.data['detail']?.toString() ??
             e.response?.data['error']?.toString() ??
             e.response?.data.toString() ??

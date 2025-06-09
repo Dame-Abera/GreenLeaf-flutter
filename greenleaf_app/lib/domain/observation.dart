@@ -1,14 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:greenleaf_app/domain/plant.dart'; // Import Plant model to access SyncStatus
 
+part 'observation.g.dart';
+
+@HiveType(typeId: 1)
 class Observation {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final String? observationImage;
+  @HiveField(2)
   final int? relatedField;
+  @HiveField(3)
   final TimeOfDay time;
+  @HiveField(4)
   final DateTime date;
+  @HiveField(5)
   final String location;
+  @HiveField(6)
   final String note;
+  @HiveField(7)
   final String? createdBy;
+  @HiveField(8)
+  final SyncStatus syncStatus;
 
   Observation({
     required this.id,
@@ -19,7 +34,32 @@ class Observation {
     required this.location,
     required this.note,
     this.createdBy,
+    this.syncStatus = SyncStatus.synced,
   });
+
+  Observation copyWith({
+    int? id,
+    String? observationImage,
+    int? relatedField,
+    TimeOfDay? time,
+    DateTime? date,
+    String? location,
+    String? note,
+    String? createdBy,
+    SyncStatus? syncStatus,
+  }) {
+    return Observation(
+      id: id ?? this.id,
+      observationImage: observationImage ?? this.observationImage,
+      relatedField: relatedField ?? this.relatedField,
+      time: time ?? this.time,
+      date: date ?? this.date,
+      location: location ?? this.location,
+      note: note ?? this.note,
+      createdBy: createdBy ?? this.createdBy,
+      syncStatus: syncStatus ?? this.syncStatus,
+    );
+  }
 
   factory Observation.fromJson(Map<String, dynamic> json) {
     // Debugging: Print the raw value and type of 'observation_image'
@@ -58,6 +98,7 @@ class Observation {
       location: (json['location'] is String) ? json['location'] as String : '',
       note: (json['note'] is String) ? json['note'] as String : '',
       createdBy: (json['created_by'] is String) ? json['created_by'] as String? : null,
+      syncStatus: SyncStatus.synced,
     );
   }
 
@@ -71,4 +112,24 @@ class Observation {
         'note': note,
         'created_by': createdBy,
       };
+}
+
+// Custom adapter for TimeOfDay
+@HiveType(typeId: 2)
+class TimeOfDayAdapter extends TypeAdapter<TimeOfDay> {
+  @override
+  final int typeId = 2; // Unique typeId for TimeOfDay
+
+  @override
+  TimeOfDay read(BinaryReader reader) {
+    final hour = reader.readInt();
+    final minute = reader.readInt();
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  @override
+  void write(BinaryWriter writer, TimeOfDay obj) {
+    writer.writeInt(obj.hour);
+    writer.writeInt(obj.minute);
+  }
 } 

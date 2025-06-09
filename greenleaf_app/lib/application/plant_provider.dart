@@ -2,11 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/plant.dart';
 import '../infrastructure/plant_repository.dart';
 import 'package:dio/dio.dart';
+import 'providers/local_data_provider.dart';
 
 final plantRepositoryProvider = Provider<PlantRepository>((ref) {
+  final localDataSource = ref.watch(localDataSourceProvider);
   return RemotePlantRepository(
     Dio(),
     baseUrl: 'http://10.0.2.2:8000',
+    localDataSource: localDataSource,
   );
 });
 
@@ -43,62 +46,62 @@ class PlantNotifier extends StateNotifier<PlantState> {
   PlantNotifier(this.repository) : super(PlantState());
 
   Future<void> fetchPlants() async {
-    state = state.copyWith(isLoading: true, error: null);
+    await Future.microtask(() => state = state.copyWith(isLoading: true, error: null));
     try {
       final plants = await repository.getPlants();
       for (var plant in plants) {
         print('Fetched Plant ${plant.commonName} with image URL: ${plant.plantImage}');
       }
-      state = state.copyWith(plants: plants, isLoading: false);
+      await Future.microtask(() => state = state.copyWith(plants: plants, isLoading: false));
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      await Future.microtask(() => state = state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 
   Future<void> fetchPlant(int id) async {
-    state = state.copyWith(isLoading: true, error: null);
+    await Future.microtask(() => state = state.copyWith(isLoading: true, error: null));
     try {
       final plant = await repository.getPlant(id);
-      state = state.copyWith(selectedPlant: plant, isLoading: false);
+      await Future.microtask(() => state = state.copyWith(selectedPlant: plant, isLoading: false));
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      await Future.microtask(() => state = state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 
   Future<void> addPlant(Map<String, dynamic> data, String? imagePath) async {
-    state = state.copyWith(isLoading: true, error: null);
+    await Future.microtask(() => state = state.copyWith(isLoading: true, error: null));
     try {
       final plant = await repository.addPlant(data, imagePath);
       print('Added Plant ${plant.commonName} with image URL: ${plant.plantImage}');
-      state = state.copyWith(
+      await Future.microtask(() => state = state.copyWith(
         plants: [...state.plants, plant],
         isLoading: false,
-      );
+      ));
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      await Future.microtask(() => state = state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 
   Future<void> updatePlant(int id, Map<String, dynamic> data, String? imagePath) async {
-    state = state.copyWith(isLoading: true, error: null);
+    await Future.microtask(() => state = state.copyWith(isLoading: true, error: null));
     try {
       final updated = await repository.updatePlant(id, data, imagePath);
       print('Updated Plant ${updated.commonName} with image URL: ${updated.plantImage}');
       final updatedList = state.plants.map((p) => p.id == id ? updated : p).toList();
-      state = state.copyWith(plants: updatedList, isLoading: false);
+      await Future.microtask(() => state = state.copyWith(plants: updatedList, isLoading: false));
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      await Future.microtask(() => state = state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 
   Future<void> deletePlant(int id) async {
-    state = state.copyWith(isLoading: true, error: null);
+    await Future.microtask(() => state = state.copyWith(isLoading: true, error: null));
     try {
       await repository.deletePlant(id);
       final updatedList = state.plants.where((p) => p.id != id).toList();
-      state = state.copyWith(plants: updatedList, isLoading: false);
+      await Future.microtask(() => state = state.copyWith(plants: updatedList, isLoading: false));
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      await Future.microtask(() => state = state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 }

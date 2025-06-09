@@ -33,7 +33,7 @@ class _AddEditObservationPageState extends ConsumerState<AddEditObservationPage>
     super.initState();
     locationController = TextEditingController(text: widget.observation?.location ?? '');
     noteController = TextEditingController(text: widget.observation?.note ?? '');
-    dateController = TextEditingController(text: widget.observation?.date?.toIso8601String().split('T').first ?? '');
+    dateController = TextEditingController(text: widget.observation?.date.toIso8601String().split('T').first ?? '');
     timeController = TextEditingController(text: widget.observation?.time != null ? '${widget.observation!.time.hour.toString().padLeft(2, '0')}:${widget.observation!.time.minute.toString().padLeft(2, '0')}' : '');
 
     // If editing an observation, try to set the selected related plant
@@ -132,11 +132,14 @@ class _AddEditObservationPageState extends ConsumerState<AddEditObservationPage>
         'note': noteController.text,
       };
 
-      if (widget.observation == null) {
-        await ref.read(observationProvider.notifier).addObservation(data, _selectedImage?.path);
-      } else {
-        await ref.read(observationProvider.notifier).updateObservation(widget.observation!.id, data, _selectedImage?.path);
-      }
+      await Future.microtask(() async {
+        if (widget.observation == null) {
+          await ref.read(observationProvider.notifier).addObservation(data, _selectedImage?.path);
+        } else {
+          await ref.read(observationProvider.notifier).updateObservation(widget.observation!.id, data, _selectedImage?.path);
+        }
+      });
+      
       if (mounted) {
         Navigator.pop(context);
       }
@@ -153,144 +156,153 @@ class _AddEditObservationPageState extends ConsumerState<AddEditObservationPage>
         title: Text(widget.observation == null ? 'Add Observation' : 'Edit Observation'),
         backgroundColor: Colors.green,
       ),
-      body: observationState.isLoading || plantsState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 150,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(16),
-                          image: _selectedImage != null
-                              ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
-                              : (widget.observation?.observationImage != null && widget.observation!.observationImage!.isNotEmpty
-                                  ? DecorationImage(image: NetworkImage(widget.observation!.observationImage!), fit: BoxFit.cover)
-                                  : null),
-                        ),
-                        child: _selectedImage == null && (widget.observation?.observationImage == null || widget.observation!.observationImage!.isEmpty)
-                            ? const Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
-                            : null,
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Container(
+                      height: 150,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(16),
+                        image: _selectedImage != null
+                            ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
+                            : (widget.observation?.observationImage != null && widget.observation!.observationImage!.isNotEmpty
+                                ? DecorationImage(image: NetworkImage(widget.observation!.observationImage!), fit: BoxFit.cover)
+                                : null),
+                      ),
+                      child: _selectedImage == null && (widget.observation?.observationImage == null || widget.observation!.observationImage!.isEmpty)
+                          ? const Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
+                          : null,
+                    ),
+                  ),
+                  if (observationState.error != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12.0),
+                      child: Text(
+                        'Error: ${observationState.error}',
+                        style: const TextStyle(color: Colors.red),
                       ),
                     ),
-                    if (observationState.error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12.0),
-                        child: Text(
-                          'Error: ${observationState.error}',
-                          style: const TextStyle(color: Colors.red),
+                  const SizedBox(height: 24),
+                  // Related Plant Dropdown
+                  plantsState.isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : DropdownButtonFormField<Plant>(
+                          value: _selectedRelatedPlant,
+                          decoration: const InputDecoration(labelText: 'Related Plant'),
+                          items: plantsState.plants.map((plant) {
+                            return DropdownMenuItem<Plant>(
+                              value: plant,
+                              child: Text(plant.commonName),
+                            );
+                          }).toList(),
+                          onChanged: (Plant? newValue) {
+                            setState(() {
+                              _selectedRelatedPlant = newValue;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Please select a related plant';
+                            }
+                            return null;
+                          },
                         ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: dateController,
+                    decoration: InputDecoration(
+                      labelText: 'Date (YYYY-MM-DD)',
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.calendar_today),
+                        onPressed: _selectDate,
                       ),
-                    const SizedBox(height: 24),
-                    // Related Plant Dropdown
-                    plantsState.isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : DropdownButtonFormField<Plant>(
-                            value: _selectedRelatedPlant,
-                            decoration: const InputDecoration(labelText: 'Related Plant'),
-                            items: plantsState.plants.map((plant) {
-                              return DropdownMenuItem<Plant>(
-                                value: plant,
-                                child: Text(plant.commonName),
-                              );
-                            }).toList(),
-                            onChanged: (Plant? newValue) {
-                              setState(() {
-                                _selectedRelatedPlant = newValue;
-                              });
-                            },
-                            validator: (value) {
-                              if (value == null) {
-                                return 'Please select a related plant';
-                              }
-                              return null;
-                            },
-                          ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: dateController,
-                      decoration: InputDecoration(
-                        labelText: 'Date (YYYY-MM-DD)',
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.calendar_today),
-                          onPressed: _selectDate,
-                        ),
+                    ),
+                    readOnly: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a date';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: timeController,
+                    decoration: InputDecoration(
+                      labelText: 'Time (HH:MM)',
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.access_time),
+                        onPressed: _selectTime,
                       ),
-                      readOnly: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select a date';
-                        }
-                        return null;
-                      },
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: timeController,
-                      decoration: InputDecoration(
-                        labelText: 'Time (HH:MM)',
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.access_time),
-                          onPressed: _selectTime,
-                        ),
+                    readOnly: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a time';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: locationController,
+                    decoration: const InputDecoration(labelText: 'Location'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter location';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: noteController,
+                    decoration: const InputDecoration(labelText: 'Note'),
+                    maxLines: 3,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a note';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: observationState.isLoading ? null : () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                        child: const Text('Cancel'),
                       ),
-                      readOnly: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select a time';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: locationController,
-                      decoration: const InputDecoration(labelText: 'Location'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter location';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: noteController,
-                      decoration: const InputDecoration(labelText: 'Note'),
-                      maxLines: 3,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a note';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          onPressed: _onSave,
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                          child: const Text('Save'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ElevatedButton(
+                        onPressed: observationState.isLoading ? null : _onSave,
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        child: const Text('Save'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
+          ),
+          if (observationState.isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
+      ),
     );
   }
 } 

@@ -30,7 +30,7 @@ class ObservationDetailPage extends ConsumerWidget {
       ),
     );
 
-    void _deleteObservation() async {
+    void deleteObservation() async {
       try {
         await observationNotifier.deleteObservation(observation.id);
         if (context.mounted) {
@@ -151,7 +151,7 @@ class ObservationDetailPage extends ConsumerWidget {
                                   TextButton(
                                     onPressed: () {
                                       Navigator.pop(context);
-                                      _deleteObservation();
+                                      deleteObservation();
                                     },
                                     child: const Text('Delete', style: TextStyle(color: Colors.red)),
                                   ),

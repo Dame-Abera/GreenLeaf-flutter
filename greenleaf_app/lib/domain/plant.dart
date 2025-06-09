@@ -1,12 +1,27 @@
+import 'package:hive/hive.dart';
+
+part 'plant.g.dart';
+
+@HiveType(typeId: 0)
 class Plant {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final String? plantImage;
+  @HiveField(2)
   final String commonName;
+  @HiveField(3)
   final String scientificName;
+  @HiveField(4)
   final String habitat;
+  @HiveField(5)
   final String origin;
+  @HiveField(6)
   final String description;
+  @HiveField(7)
   final String? createdBy;
+  @HiveField(8)
+  final SyncStatus syncStatus;
 
   Plant({
     required this.id,
@@ -17,7 +32,32 @@ class Plant {
     required this.origin,
     required this.description,
     this.createdBy,
+    this.syncStatus = SyncStatus.synced,
   });
+
+  Plant copyWith({
+    int? id,
+    String? plantImage,
+    String? commonName,
+    String? scientificName,
+    String? habitat,
+    String? origin,
+    String? description,
+    String? createdBy,
+    SyncStatus? syncStatus,
+  }) {
+    return Plant(
+      id: id ?? this.id,
+      plantImage: plantImage ?? this.plantImage,
+      commonName: commonName ?? this.commonName,
+      scientificName: scientificName ?? this.scientificName,
+      habitat: habitat ?? this.habitat,
+      origin: origin ?? this.origin,
+      description: description ?? this.description,
+      createdBy: createdBy ?? this.createdBy,
+      syncStatus: syncStatus ?? this.syncStatus,
+    );
+  }
 
   factory Plant.fromJson(Map<String, dynamic> json) {
     // Debugging: Print the raw value and type of 'plant_image'
@@ -40,6 +80,7 @@ class Plant {
       origin: (json['origin'] is String) ? json['origin'] as String : '',
       description: (json['description'] is String) ? json['description'] as String : '',
       createdBy: (json['created_by'] is String) ? json['created_by'] as String? : null,
+      syncStatus: SyncStatus.synced,
     );
   }
 
@@ -53,4 +94,16 @@ class Plant {
         'description': description,
         'created_by': createdBy,
       };
+}
+
+@HiveType(typeId: 200)
+enum SyncStatus {
+  @HiveField(0)
+  synced,
+  @HiveField(1)
+  pending_create,
+  @HiveField(2)
+  pending_update,
+  @HiveField(3)
+  pending_delete,
 } 
