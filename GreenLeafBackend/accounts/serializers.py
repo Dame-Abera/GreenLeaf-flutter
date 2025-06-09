@@ -52,8 +52,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = my_models.CustomUser
-        fields = ('id', 'first_name','last_name', 'birthdate', 'gender', 'email', 'phone_number', 'profile_image')
-        read_only_fields = ('email',)
+        fields = ('id', 'first_name', 'last_name', 'birthdate', 'gender', 'email', 'phone_number', 'profile_image', 'is_staff', 'is_superuser', 'is_active')
+        read_only_fields = ('email', 'is_staff', 'is_superuser', 'is_active')
 
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -62,7 +62,7 @@ class UserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = my_models.CustomUser
-        fields = ['id', 'first_name', 'last_name', 'email', 'total_plant_record', 'total_observation_records', 'is_admin']
+        fields = ['id', 'first_name', 'last_name', 'email', 'total_plant_record', 'total_observation_records', 'is_staff', 'is_superuser']
 
     def get_total_plant_record(self, obj):
         return obj.plants.all().count()

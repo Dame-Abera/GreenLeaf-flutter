@@ -82,6 +82,7 @@ class RemoteAuthRepository implements AuthRepository {
         options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
       );
       final data = response.data;
+      print('DEBUG: Raw profile data from backend: $data');
       return User(
         firstName: data['first_name'],
         lastName: data['last_name'],
@@ -90,6 +91,9 @@ class RemoteAuthRepository implements AuthRepository {
         birthdate: data['birthdate'] != null ? DateTime.tryParse(data['birthdate']) : null,
         gender: data['gender'],
         phoneNumber: data['phone_number'],
+        isStaff: data['is_staff'] == true,
+        isSuperuser: data['is_superuser'] == true,
+        isActive: data['is_active'] == true,
       );
     } catch (e) {
       print('Fetch profile error: $e');
@@ -154,6 +158,8 @@ class RemoteAuthRepository implements AuthRepository {
         birthdate: respData['birthdate'] != null ? DateTime.tryParse(respData['birthdate']) : null,
         gender: respData['gender'],
         phoneNumber: respData['phone_number'],
+        isStaff: (respData['is_staff'] is bool) ? respData['is_staff'] : false,
+        isSuperuser: (respData['is_superuser'] is bool) ? respData['is_superuser'] : false,
       );
     } catch (e) {
       print('Update profile error: $e');

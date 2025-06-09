@@ -51,7 +51,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> fetchProfile(String token) async {
+  Future<void> fetchProfile(String? token) async {
     state = state.copyWith(isLoading: true, failure: null);
     try {
       final user = await repository.fetchProfile(token);

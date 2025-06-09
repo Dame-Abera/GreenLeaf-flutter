@@ -8,6 +8,8 @@ import 'add_edit_plant_page.dart';
 import 'plant_detail_page.dart'; // Will be created soon
 import 'add_edit_observation_page.dart'; // Import the new observation page
 import 'observation_detail_page.dart'; // Import the new observation detail page
+import 'admin_dashboard_page.dart'; // Import AdminDashboardPage
+import '../application/auth_provider.dart'; // Import auth_provider
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -23,10 +25,12 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Fetch plants when the Home Page initializes
+    // Fetch plants and observations when the Home Page initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(plantProvider.notifier).fetchPlants();
       ref.read(observationProvider.notifier).fetchObservations();
+      // Also ensure user profile is fetched to check admin status
+      ref.read(authProvider.notifier).fetchProfile(null as String?);
     });
   }
 
@@ -34,6 +38,19 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     final plantState = ref.watch(plantProvider);
     final observationState = ref.watch(observationProvider);
+    final authState = ref.watch(authProvider); // Watch authState for user info
+    final user = authState.user;
+
+    final bool isAdmin = user?.isAdmin ?? false;
+
+    List<BottomNavigationBarItem> bottomNavItems = [
+      const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+      const BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: 'Account'),
+    ];
+
+    if (isAdmin) {
+      bottomNavItems.add(const BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Admin'));
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -98,18 +115,16 @@ class _HomePageState extends ConsumerState<HomePage> {
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
-            if (index == 1) {
+            if (index == 0) {
+              // Navigate to Home page (current page)
+            } else if (index == 1) {
               Navigator.pushNamed(context, '/profile');
-            } else if (index == 0) {
-              // Navigate to home if already on profile or other tab
-              Navigator.pushReplacementNamed(context, '/home');
+            } else if (isAdmin && index == 2) { // Admin tab is only available if isAdmin is true and it's the 3rd item
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const AdminDashboardPage()));
             }
           });
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: 'Account'),
-        ],
+        items: bottomNavItems,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

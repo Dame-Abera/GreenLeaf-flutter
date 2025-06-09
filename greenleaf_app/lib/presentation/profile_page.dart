@@ -94,6 +94,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       appBar: AppBar(
         title: const Text('Profile'),
         backgroundColor: Colors.green,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Go back to the previous screen
+          },
+        ),
         actions: [
           if (!isEditing)
             IconButton(

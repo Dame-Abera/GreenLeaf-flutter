@@ -8,6 +8,7 @@ class User {
   final String? phoneNumber;
   final bool isActive;
   final bool isStaff;
+  final bool isSuperuser;
 
   User({
     this.firstName,
@@ -19,5 +20,14 @@ class User {
     this.phoneNumber,
     this.isActive = true,
     this.isStaff = false,
+    this.isSuperuser = false,
   });
+
+  bool get isAdmin {
+    // Check if the email matches admin pattern or specific admin emails
+    return email.toLowerCase() == 'dameabera@gmail.com' || 
+           email.toLowerCase().endsWith('@admin.com') ||
+           isStaff ||
+           isSuperuser;
+  }
 } 

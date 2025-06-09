@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../application/auth_provider.dart';
+import 'admin_dashboard_page.dart';
 
 class SignUpPage extends ConsumerWidget {
   final TextEditingController emailController = TextEditingController();
@@ -16,7 +17,11 @@ class SignUpPage extends ConsumerWidget {
 
     if (authState.user != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushReplacementNamed(context, '/home');
+        if (authState.user!.isAdmin) {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const AdminDashboardPage()));
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       });
     }
 
